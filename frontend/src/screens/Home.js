@@ -9,7 +9,7 @@ const Home = () => {
   const [jresult, setJResult] = useState()
 
   const handleSubmit = async (e) => {
-    e.prevendDefault()
+    e.preventDefault()
     if (!input) {
       setError('Please enter a value.')
       setPrompt('')
@@ -19,14 +19,16 @@ const Home = () => {
     }
 
     try {
-      const response = await fetch('/api/chatgpt', {
+      const response = await fetch('http://localhost:5000/api/chatgpt/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE, OPTIONS"
         },
         body: JSON.stringify({ text: input })
       })
-
+      console.log(response)
       if (response.ok) {
         const data = await response.json()
         console.log(data)
