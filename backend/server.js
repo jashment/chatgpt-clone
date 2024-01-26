@@ -6,12 +6,12 @@ const { Configuration, OpenAIApi } = require('openai')
 const app = express()
 
 app.use(express.json())
-app.use(cors({
-  origin: 'http://localhost:3000'
-}))
 
 dotenv.config()
 
+app.use(cors({
+  origin: 'http://localhost:3000'
+}))
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY
 })
@@ -21,7 +21,7 @@ console.log(openai)
 
 const runCompletion = async (prompt) => {
   const response = await openai.createCompletion({
-    model: 'text-davinci-003',
+    model: 'gpt-3.5-turbo-instruct',
     prompt: prompt,
     max_tokens: 50
   })
