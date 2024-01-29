@@ -32,6 +32,11 @@ const Home = () => {
       if (response.ok) {
         const data = await response.json()
         console.log(data)
+        setPrompt(input)
+        setResult(data.data.choices[0].text.replace(/.*:/, ""))
+        setJResult(JSON.stringify(data.data, null, 2))
+        setInput('')
+        setError('')
       } else {
         throw new Error('An error occured.')
       }

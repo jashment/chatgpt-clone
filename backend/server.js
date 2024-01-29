@@ -32,7 +32,7 @@ app.post('/api/chatgpt', async (req, res) => {
   try {
     const { text } = req.body
     const completion = await runCompletion(text)
-    res.json({ data: completion.data.choices[0].text })
+    res.json({ data: completion.data })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)
