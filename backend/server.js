@@ -8,10 +8,8 @@ const app = express()
 app.use(express.json())
 
 dotenv.config()
+app.use(cors())
 
-app.use(cors({
-  origin: 'http://localhost:3000'
-}))
 const configuration = new Configuration({
   organization: 'org-hlVylsQNv3gdpXxHbosquRRW',
   apiKey: process.env.OPENAI_API_KEY
@@ -30,17 +28,16 @@ const runCompletion = async (prompt) => {
     presence_penalty: 0,
     max_tokens: 50
   })
-  console.log(response)
+
   return response
 }
 
 app.post('/api/chatgpt', async (req, res) => {
-  console.log('getting here')
 
   try {
     const { text } = req.body
     const completion = await runCompletion(text)
-    res.json({ data: completion.data.choices })
+    res.json({ data: completion.data })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)
