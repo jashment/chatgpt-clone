@@ -23,6 +23,11 @@ const runCompletion = async (prompt) => {
   const response = await openai.createCompletion({
     model: 'gpt-3.5-turbo-instruct',
     prompt: prompt,
+    temperature: 1,
+    top_p: 1,
+    n: 3,
+    frequency_penalty: 0,
+    presence_penalty: 0,
     max_tokens: 50
   })
   console.log(response)
