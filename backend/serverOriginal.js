@@ -2,7 +2,6 @@ const express = require('express')
 const dotenv = require('dotenv')
 const cors = require('cors')
 const { Configuration, OpenAIApi } = require('openai')
-const { EventEmitter } = require('events')
 
 const app = express()
 
@@ -10,7 +9,6 @@ app.use(express.json())
 
 dotenv.config()
 app.use(cors())
-const completionEmitter = new EventEmitter()
 
 const configuration = new Configuration({
   organization: 'org-hlVylsQNv3gdpXxHbosquRRW',
@@ -19,7 +17,7 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration)
 
-const startCompletionStream = async (prompt) => {
+const runCompletion = async (prompt) => {
   const response = await openai.createCompletion({
     model: 'gpt-3.5-turbo-instruct',
     prompt: prompt,
@@ -27,43 +25,19 @@ const startCompletionStream = async (prompt) => {
     top_p: 1,
     frequency_penalty: 0,
     presence_penalty: 0,
-    max_tokens: 10,
-    stream: true
-  }, {
-    responseType: 'stream'
+    max_tokens: 50,
+    echo: true
   })
 
-  response.data.on('data', data => {
-    console.log(data.toString().replace(/^data: /, ''))
-    const message = data.toString().replace(/^data: /, '')
-    if (message !== '') {
-      completionEmitter.emit('data', message)
-    } else {
-      completionEmitter.emit('Done')
-    }
-  })
+  return response
 }
 
 app.post('/api/chatgpt', async (req, res) => {
 
   try {
     const { text } = req.body
-    startCompletionStream(text)
-
-    const dataListener = (data) => {
-      res.write(data)
-    }
-
-    const doneListener = () => {
-      res.write('{"event": "done"}')
-      res.end()
-      completionEmitter.off('data', dataListener)
-      completionEmitter.off('Done', doneListener)
-    }
-
-    completionEmitter.on('data', dataListener)
-    completionEmitter.on('Done', doneListener)
-
+    const completion = await runCompletion(text)
+    res.json({ data: completion.data })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)
