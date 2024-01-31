@@ -32,15 +32,48 @@ const Stream = () => {
         body: JSON.stringify({ text: input }),
         signal: signal
       })
-      console.log(response)
+
       if (response.ok) {
         const reader = response.body.getReader()
-        console.log(data)
+        let resultData = ''
+
         setPrompt(input)
-        setResult(data.data.choices[0].text.replace(/.*:/, ""))
-        setJResult(JSON.stringify(data.data, null, 2))
+        setResult(resultData)
         setInput('')
         setError('')
+
+        let readerDone = false
+        while (!readerDone) {
+          const { value, done } = await reader.read()
+
+          if (done) {
+            console.log(resultData)
+            readerDone = true
+          } else {
+            let chunk = new TextDecoder('utf-8').decode(value)
+            chunk = chunk
+              .replaceAll('{"event": "done"}', '')
+              .replaceAll('data: [DONE]', '')
+              .replaceAll('[data: {', '[{')
+              .replaceAll('data: {', ',{')
+              .replaceAll(/\r|\n/g, '')
+            // chunk = `[${chunk}]`
+            // console.log(chunk)
+            // chunk = JSON.parse(chunk)
+            console.log(chunk)
+
+            let text = ''
+            for (let i = 0; i < chunk.length; i++) {
+              const choices = chunk[i].choices
+              if (choices && choices.length > 0) {
+                text += choices
+              }
+            }
+            resultData += text
+            setResult((prevRes) => prevRes + text)
+          }
+        }
+
       } else {
         throw new Error('An error occured.')
       }
