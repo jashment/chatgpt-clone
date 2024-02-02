@@ -36,7 +36,7 @@ const Stream = () => {
       if (response.ok) {
         const reader = response.body.getReader()
         let resultData = ''
-
+        let jResultData = []
         setPrompt(input)
         setResult(resultData)
         setInput('')
@@ -61,17 +61,20 @@ const Stream = () => {
 
             chunk = `[${chunk}]`
             chunk = JSON.parse(chunk)
-            console.log(chunk)
+
             let text = ''
             for (let i = 0; i < chunk.length; i++) {
               const choices = chunk[i].choices
-              console.log(choices)
+
               if (choices && choices.length > 0) {
                 text += choices[0].text
               }
             }
             resultData += text
             setResult((prevRes) => prevRes + text)
+
+            jResultData.push(chunk)
+            setJResult(JSON.stringify(jResultData, null, 2))
           }
         }
 
@@ -79,7 +82,6 @@ const Stream = () => {
         throw new Error('An error occured.')
       }
     } catch (error) {
-      console.log(error)
       setResult('')
       setError('An error occured while submitting the form.')
     }
