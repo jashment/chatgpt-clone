@@ -50,18 +50,17 @@ const Stream = () => {
             console.log(resultData)
             readerDone = true
           } else {
+            // const allChunks = []
             let chunk = new TextDecoder('utf-8').decode(value)
             chunk = chunk
               .replaceAll('{"event": "done"}', '')
               .replaceAll('data: [DONE]', '')
-              .replaceAll('[data: {', '[{')
-              .replaceAll('data: {', ',{')
+              .replaceAll('data: ', '')
               .replaceAll(/\r|\n/g, '')
-            // chunk = `[${chunk}]`
-            // console.log(chunk)
-            // chunk = JSON.parse(chunk)
-            console.log(chunk)
+              .replaceAll('}{', '},{')
 
+            chunk = `[${chunk}]`
+            chunk = JSON.parse(chunk)
             let text = ''
             for (let i = 0; i < chunk.length; i++) {
               const choices = chunk[i].choices
