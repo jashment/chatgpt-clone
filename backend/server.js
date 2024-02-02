@@ -27,7 +27,7 @@ const startCompletionStream = async (prompt) => {
     top_p: 1,
     frequency_penalty: 0,
     presence_penalty: 0,
-    max_tokens: 10,
+    max_tokens: 20,
     stream: true
   }, {
     responseType: 'stream'

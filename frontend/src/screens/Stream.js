@@ -61,11 +61,13 @@ const Stream = () => {
 
             chunk = `[${chunk}]`
             chunk = JSON.parse(chunk)
+            console.log(chunk)
             let text = ''
             for (let i = 0; i < chunk.length; i++) {
               const choices = chunk[i].choices
+              console.log(choices)
               if (choices && choices.length > 0) {
-                text += choices
+                text += choices[0].text
               }
             }
             resultData += text
