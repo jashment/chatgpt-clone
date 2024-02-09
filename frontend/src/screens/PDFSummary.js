@@ -7,7 +7,7 @@ const Home = () => {
   const [result, setResult] = useState()
   const [prompt, setPrompt] = useState()
   const [jresult, setJResult] = useState()
-  const [maxWords, setMaxWords] = useState()
+  const [maxWords, setMaxWords] = useState(100)
   const [selectedFile, setSelectedFile] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -61,12 +61,28 @@ const Home = () => {
         <h1 className='display-4'>PDF Book Summarizer</h1>
         <p className='lead'>Summarize PDF Books for Efficient Reading!</p>
         <form className='w-100'>
-          <input type='file' accept='.pdf' onChange={handleFileChange}></input>
+          <input
+            type='file'
+            accept='.pdf'
+            onChange={handleFileChange}
+          ></input>
           <div className='form-group row'>
             <div className='col-sm-4 offset-sm-4 mt-3'>
-              <input type='number' min='10' value={maxWords} onChange={(e) => setMaxWords(e.target.value)} className='form-control'></input>
+              <input
+                type='number'
+                min='10'
+                value={maxWords}
+                onChange={(e) => setMaxWords(e.target.value)}
+                className='form-control'
+              ></input>
             </div>
-            <button type='submit' disabled={!selectedFile || isLoading} className='btn btn-primary custom-button mt-1'> Summarize PDF</button>
+            <button
+              type='submit'
+              disabled={!selectedFile || isLoading}
+              className='btn btn-primary custom-button mt-1'
+            >
+              {isLoading ? 'Analysing PDF...' : `Summarize PDF in about ${maxWords} words.`}
+            </button>
           </div>
         </form>
       </div>
