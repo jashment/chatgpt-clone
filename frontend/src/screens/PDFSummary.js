@@ -1,45 +1,49 @@
 import React, { useState } from 'react'
 import './style/style.css'
+import axios from 'axios'
 
 const Home = () => {
   const [input, setInput] = useState()
   const [error, setError] = useState()
   const [result, setResult] = useState()
-  const [prompt, setPrompt] = useState()
   const [jresult, setJResult] = useState()
   const [maxWords, setMaxWords] = useState(100)
   const [selectedFile, setSelectedFile] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleFileChange = () => {
-
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    setSelectedFile(file)
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!input) {
-      setError('Please enter a value.')
-      setPrompt('')
+    setIsLoading(true)
+    if (!maxWords) {
+      setError('Please enter a number of words.')
       setResult('')
       setJResult('')
       return
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/chatgpt', {
+      const formData = new FormData()
+      formData.append('pdf', selectedFile)
+      formData.append('maxWords', maxWords)
+
+      const response = await axios({
+        url: 'http://localhost:5001/api/pdf-summary',
         method: 'POST',
+        formData,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
           'Access-Control-Allow-Origin': '*',
           "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE, OPTIONS"
         },
-        body: JSON.stringify({ text: input })
       })
       console.log(response)
       if (response.ok) {
         const data = await response.json()
-        console.log(data)
-        setPrompt(input)
         setResult(data.data.choices[0].text.replace(/.*:/, ""))
         setJResult(JSON.stringify(data.data, null, 2))
         setInput('')

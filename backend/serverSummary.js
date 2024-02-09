@@ -32,7 +32,7 @@ const runCompletion = async (prompt) => {
   return response
 }
 
-app.post('/api/chatgpt', async (req, res) => {
+app.post('/api/pdf-summary', async (req, res) => {
 
   try {
     const { text } = req.body
