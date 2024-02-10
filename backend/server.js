@@ -19,6 +19,21 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration)
 
+const runCompletion = async (prompt) => {
+  const response = await openai.createCompletion({
+    model: 'gpt-3.5-turbo-instruct',
+    prompt: prompt,
+    temperature: 1,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    max_tokens: 50,
+    echo: true
+  })
+
+  return response
+}
+
 const startCompletionStream = async (prompt) => {
   const response = await openai.createCompletion({
     model: 'gpt-3.5-turbo-instruct',
@@ -44,7 +59,7 @@ const startCompletionStream = async (prompt) => {
   })
 }
 
-app.post('/api/chatgpt', async (req, res) => {
+app.post('/api/chatgpt-stream', async (req, res) => {
 
   try {
     const { text } = req.body
@@ -64,6 +79,48 @@ app.post('/api/chatgpt', async (req, res) => {
     completionEmitter.on('data', dataListener)
     completionEmitter.on('Done', doneListener)
 
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.status, error.response.data)
+      res.status(error.response.status).json(error.response.data)
+    } else {
+      console.error('Error with OpenAI API request', error.message)
+      res.status(500).json({
+        error: {
+          message: 'An Error Occured.'
+        }
+      })
+    }
+  }
+})
+
+app.post('/api/chatgpt', async (req, res) => {
+
+  try {
+    const { text } = req.body
+    const completion = await runCompletion(text)
+    res.json({ data: completion.data })
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.status, error.response.data)
+      res.status(error.response.status).json(error.response.data)
+    } else {
+      console.error('Error with OpenAI API request', error.message)
+      res.status(500).json({
+        error: {
+          message: 'An Error Occured.'
+        }
+      })
+    }
+  }
+})
+
+app.post('/api/pdf-summary', async (req, res) => {
+
+  try {
+    const { text } = req.body
+    const completion = await runCompletion(text)
+    res.json({ data: completion.data })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)
