@@ -22,7 +22,7 @@ const Stream = () => {
       const controller = new AbortController()
       const signal = controller.signal
 
-      const response = await fetch('http://localhost:5001/api/chatgpt', {
+      const response = await fetch('http://localhost:5001/api/chatgpt-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
