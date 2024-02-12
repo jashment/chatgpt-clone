@@ -34,23 +34,22 @@ const Home = () => {
       const response = await axios({
         url: 'http://localhost:5001/api/pdf-summary',
         method: 'POST',
-        formData,
+        data: formData,
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Access-Control-Allow-Origin': '*',
-          "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE, OPTIONS"
         },
       })
-      console.log(response)
-      if (response.ok) {
-        const data = await response.json()
-        setResult(data.data.choices[0].text.replace(/.*:/, ""))
-        setJResult(JSON.stringify(data.data, null, 2))
-        setInput('')
-        setError('')
-      } else {
-        throw new Error('An error occured.')
-      }
+      console.log(response.data)
+      setJResult(JSON.stringify(response.data, null, 2))
+      // if (response.ok) {
+      //   const data = await response.json()
+      //   setResult(data.data.choices[0].text.replace(/.*:/, ""))
+      //   setJResult(JSON.stringify(data.data, null, 2))
+      //   setInput('')
+      //   setError('')
+      // } else {
+      //   throw new Error('An error occured.')
+      // }
     } catch (error) {
       console.log(error)
       setResult('')
@@ -64,7 +63,7 @@ const Home = () => {
       <div className='hero d-flex align-items-center justify-content-center text-center flex-column p-3'>
         <h1 className='display-4'>PDF Book Summarizer</h1>
         <p className='lead'>Summarize PDF Books for Efficient Reading!</p>
-        <form className='w-100'>
+        <form className='w-100' onSubmit={handleSubmit}>
           <input
             type='file'
             accept='.pdf'

@@ -3,6 +3,8 @@ const dotenv = require('dotenv')
 const cors = require('cors')
 const { Configuration, OpenAIApi } = require('openai')
 const { EventEmitter } = require('events')
+const multer = require('multer')
+const path = require('path')
 
 const app = express()
 
@@ -115,7 +117,9 @@ app.post('/api/chatgpt', async (req, res) => {
   }
 })
 
-app.post('/api/pdf-summary', async (req, res) => {
+const upload = multer({dest: path.join(__dirname, 'pdfsummary')})
+
+app.post('/api/pdf-summary', upload.single('pdf'), async (req, res) => {
 
   try {
     const { text } = req.body
