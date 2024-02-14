@@ -6,6 +6,7 @@ const { EventEmitter } = require('events')
 const multer = require('multer')
 const path = require('path')
 const { PDFExtract } = require('pdf.js-extract')
+const { encode } = require('gpt-3-encoder')
 
 
 const app = express()
@@ -119,13 +120,38 @@ app.post('/api/chatgpt', async (req, res) => {
   }
 })
 
-const splitTextIntoChunks = () => {
-  const maxChunkSize = 2000
+const calculateTokens = (text) => {
+  encode(text).length
+}
+
+const splitSentence = (sentence, maxChunkSize) => {
+  const sentenceChunks = []
+  let partialChunk = ''
+  const words = sentence.split(' ')
+
+  words.forEach(word => {
+    if (calculateTokens(partialChunk + word) < maxChunkSize) {
+      partialChunk += word + '.'
+    } else {
+      sentenceChunks.push(partialChunk.trim())
+      partialChunk = word + '.'
+    }
+  })
+
+  if (partialChunk) sentenceChunks.push(partialChunk.trim())
+  return sentenceChunks
+}
+
+const splitTextIntoChunks = (text, maxChunkSize) => {
   const chunks = []
   let currentChunk = ''
   const sentences = text.split('.')
 
   sentences.forEach(sentence => {
+    if (calculateTokens(currentChunk) > maxChunkSize) {
+      const sentenceChunks = splitSentence(currentChunk, maxChunkSize)
+      chunks.push(...sentenceChunks)
+    }
     if (calculateTokens(currentChunk + sentence) < maxChunkSize) {
       currentChunk += sentence + '.'
     } else {
@@ -163,7 +189,9 @@ app.post('/api/pdf-summary', upload.single('pdf'), async (req, res) => {
 
     if (pdfText.length === 0) return res.json({ error: 'Text could not be extracted.' })
 
-    res.json({ pdfText })
+    const chunks = splitTextIntoChunks(pdfText, 2000)
+    const tokens = chunks.map((chunk) => encode(chunk).length)
+    res.json({ chunks, tokens })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)
