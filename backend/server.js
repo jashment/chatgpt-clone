@@ -5,6 +5,8 @@ const { Configuration, OpenAIApi } = require('openai')
 const { EventEmitter } = require('events')
 const multer = require('multer')
 const path = require('path')
+const { PDFExtract } = require('pdf.js-extract')
+
 
 const app = express()
 
@@ -117,14 +119,51 @@ app.post('/api/chatgpt', async (req, res) => {
   }
 })
 
-const upload = multer({dest: path.join(__dirname, 'pdfsummary')})
+const splitTextIntoChunks = () => {
+  const maxChunkSize = 2000
+  const chunks = []
+  let currentChunk = ''
+  const sentences = text.split('.')
+
+  sentences.forEach(sentence => {
+    if (calculateTokens(currentChunk + sentence) < maxChunkSize) {
+      currentChunk += sentence + '.'
+    } else {
+      chunks.push(currentChunk.trim())
+      currentChunk = sentence + '.'
+    }
+  })
+
+  if (currentChunk) chunks.push(currentChunk.trim())
+  return chunks
+}
+
+const upload = multer({ dest: path.join(__dirname, 'pdfsummary') })
 
 app.post('/api/pdf-summary', upload.single('pdf'), async (req, res) => {
 
   try {
-    const { text } = req.body
-    const completion = await runCompletion(text)
-    res.json({ data: completion.data })
+    // res.json({ data: req.file, body: req.body })
+    const { maxWords } = req.body
+    const pdfFile = req.file
+
+    const pdfExtract = new PDFExtract()
+
+    const extractOptions = {
+      firstPage: 1,
+      lastPage: undefined,
+      password: '',
+      verbosity: -1,
+      normalizeWhitespace: false,
+      disableCombinedTextItems: false
+    }
+    const data = await pdfExtract.extract(pdfFile.path, extractOptions)
+
+    const pdfText = data.pages.map((page) => page.content.map((item) => item.str).join(' ')).join(' ')
+
+    if (pdfText.length === 0) return res.json({ error: 'Text could not be extracted.' })
+
+    res.json({ pdfText })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)

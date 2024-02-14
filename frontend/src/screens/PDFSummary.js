@@ -40,6 +40,10 @@ const Home = () => {
         },
       })
       console.log(response.data)
+      if (response.data.error) {
+        setError(response.data.error)
+        return
+      }
       setJResult(JSON.stringify(response.data, null, 2))
       // if (response.ok) {
       //   const data = await response.json()
@@ -54,6 +58,8 @@ const Home = () => {
       console.log(error)
       setResult('')
       setError('An error occured while submitting the form.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -91,7 +97,7 @@ const Home = () => {
       </div>
       {error && <div className='alert alert-danger mt-3'>{error}</div>}
       {result && <div className='alert alert-success mt-3'>{result}</div>}
-      {result && (<pre className='alert alert-success mt-3'><code>{jresult}</code></pre>)}
+      {jresult && (<pre className='alert alert-success mt-3'><code>{jresult}</code></pre>)}
     </div>
   )
 }
