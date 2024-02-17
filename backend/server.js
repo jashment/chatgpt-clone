@@ -164,6 +164,41 @@ const splitTextIntoChunks = (text, maxChunkSize) => {
   return chunks
 }
 
+const summarizeChunk = async (chunk, maxWords) => {
+  let condition = ''
+  if (maxWords) {
+    condition = `Summarize this chunk of text with at most ${maxWords} words.`
+  }
+  try {
+    const completion = await openai.createCompletion({
+      model: 'gpt-3.5-turbo-instruct',
+      prompt: `Summarize this chunk of text: ${condition} \n"""${chunk}"""\n`,
+      temperature: 1,
+      max_tokens: 2000,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0
+    })
+    return completion.data.choices[0].text
+  } catch (error) {
+    console.log("summarizeChunk error", error)
+    throw new Error(error)
+  }
+}
+
+const summarizeChunks = async (chunks) => {
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+  const summarizedChunks = await Promise.all(chunks.map(async (chunk) => {
+    const result = await summarizeChunk(chunk)
+    await delay(200)
+    return result
+  }))
+
+  const concatenatedText = summarizedChunks.join(' ')
+  return concatenatedText
+}
+
 const upload = multer({ dest: path.join(__dirname, 'pdfsummary') })
 
 app.post('/api/pdf-summary', upload.single('pdf'), async (req, res) => {
@@ -189,9 +224,17 @@ app.post('/api/pdf-summary', upload.single('pdf'), async (req, res) => {
 
     if (pdfText.length === 0) return res.json({ error: 'Text could not be extracted.' })
 
-    const chunks = splitTextIntoChunks(pdfText, 2000)
-    const tokens = chunks.map((chunk) => encode(chunk).length)
-    res.json({ chunks, tokens })
+    // const chunks = splitTextIntoChunks(pdfText, 2000)
+    // const tokens = chunks.map((chunk) => encode(chunk).length)
+    // res.json({ chunks, tokens })
+    let summarizedText = pdfText
+    const maxToken = 1000
+    while(calculateTokens(summarizedText) > maxToken) {
+      const newChunks = splitTextIntoChunks(summarizedText, maxToken)
+      summarizedText = await summarizeChunks(newChunks)
+    }
+    summarizedText = await summarizeChunk(summarizedText, maxWords)
+    res.json({ summarizedText })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)
