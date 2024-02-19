@@ -4,6 +4,7 @@ import Stream from './screens/Stream'
 import "./styles/custom.scss"
 import PDFSummary from './screens/PDFSummary'
 import Chat from './screens/Chat'
+import ChatFunction from './screens/Chat'
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
           <Route path='/stream' element={<Stream />} />
           <Route path='/pdf-summary' element={<PDFSummary />} />
           <Route path='/chat' element={<Chat />} />
+          <Route path='/chat-function' element={<ChatFunction />} />
         </Routes>
       </Router>
     </>

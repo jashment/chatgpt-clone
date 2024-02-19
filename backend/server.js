@@ -288,6 +288,66 @@ app.post('/api/chatgpt-chat', async (req, res) => {
   }
 })
 
+const runFunctionCompletion = async (prompt) => {
+  const response = await openai.createChatCompletion({
+    model: 'gpt-3.5-turbo',
+    messages: [
+      { role: 'user', content: prompt }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_current_weather",
+          "description": "Get the current weather in a given location",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "The city and state, e.g. San Francisco, CA"
+              },
+              "unit": {
+                "type": "string",
+                "enum": ["celsius", "fahrenheit"]
+              }
+            },
+            "required": ["location"]
+          }
+        }
+      }
+    ],
+    temperature: 1,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    max_tokens: 50,
+  })
+
+  return response
+}
+
+app.post('/api/chatgpt-function', async (req, res) => {
+
+  try {
+    const { text } = req.body
+    const completion = await runFunctionCompletion(text)
+    res.json({ data: completion.data })
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.status, error.response.data)
+      res.status(error.response.status).json(error.response.data)
+    } else {
+      console.error('Error with OpenAI API request', error.message)
+      res.status(500).json({
+        error: {
+          message: 'An Error Occured.'
+        }
+      })
+    }
+  }
+})
+
 const PORT = process.env.PORT || 5000
 
 app.listen(PORT, console.log(`Server Started at ${PORT}`))
