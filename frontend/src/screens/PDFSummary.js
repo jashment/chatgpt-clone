@@ -44,6 +44,7 @@ const Home = () => {
         setError(response.data.error)
         return
       }
+      setResult(response.data.summarizedText)
       setJResult(JSON.stringify(response.data, null, 2))
       // if (response.ok) {
       //   const data = await response.json()
