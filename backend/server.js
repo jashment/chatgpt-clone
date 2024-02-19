@@ -64,24 +64,6 @@ const startCompletionStream = async (prompt) => {
   })
 }
 
-const runChatCompletion = async (prompt) => {
-  const response = await openai.createChatCompletion({
-    model: 'gpt-3.5-turbo',
-    messages: [
-      { role: 'system', content: 'You are a doctor.' },
-      {role: 'user', content: prompt}
-    ],
-    temperature: 1,
-    top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-    max_tokens: 50,
-    echo: true
-  })
-
-  return response
-}
-
 app.post('/api/chatgpt-stream', async (req, res) => {
 
   try {
@@ -253,6 +235,44 @@ app.post('/api/pdf-summary', upload.single('pdf'), async (req, res) => {
     }
     summarizedText = await summarizeChunk(summarizedText, maxWords)
     res.json({ summarizedText })
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.status, error.response.data)
+      res.status(error.response.status).json(error.response.data)
+    } else {
+      console.error('Error with OpenAI API request', error.message)
+      res.status(500).json({
+        error: {
+          message: 'An Error Occured.'
+        }
+      })
+    }
+  }
+})
+
+const runChatCompletion = async (prompt) => {
+  const response = await openai.createChatCompletion({
+    model: 'gpt-3.5-turbo',
+    messages: [
+      { role: 'system', content: 'You are a doctor.' },
+      { role: 'user', content: prompt }
+    ],
+    temperature: 1,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    max_tokens: 50,
+  })
+
+  return response
+}
+
+app.post('/api/chatgpt-chat', async (req, res) => {
+
+  try {
+    const { text } = req.body
+    const completion = await runChatCompletion(text)
+    res.json({ data: completion.data })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)

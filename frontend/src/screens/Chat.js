@@ -19,7 +19,7 @@ const Chat = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/chatgpt', {
+      const response = await fetch('http://localhost:5001/api/chatgpt-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ const Chat = () => {
         const data = await response.json()
         console.log(data)
         setPrompt(input)
-        setResult(data.data.choices[0].text.replace(/.*:/, ""))
+        setResult(data.data.choices[0].message.content)
         setJResult(JSON.stringify(data.data, null, 2))
         setInput('')
         setError('')

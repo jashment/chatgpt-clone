@@ -46,15 +46,6 @@ const Home = () => {
       }
       setResult(response.data.summarizedText)
       setJResult(JSON.stringify(response.data, null, 2))
-      // if (response.ok) {
-      //   const data = await response.json()
-      //   setResult(data.data.choices[0].text.replace(/.*:/, ""))
-      //   setJResult(JSON.stringify(data.data, null, 2))
-      //   setInput('')
-      //   setError('')
-      // } else {
-      //   throw new Error('An error occured.')
-      // }
     } catch (error) {
       console.log(error)
       setResult('')
