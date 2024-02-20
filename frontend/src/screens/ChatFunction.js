@@ -35,7 +35,7 @@ const Chat = () => {
         const data = await response.json()
         console.log(data)
         setPrompt(input)
-        setResult(data.data.choices[0].message.content)
+        // setResult(data.data.choices[0].message.content)
         setJResult(JSON.stringify(data.data, null, 2))
         setInput('')
         setError('')

@@ -7,7 +7,7 @@ const multer = require('multer')
 const path = require('path')
 const { PDFExtract } = require('pdf.js-extract')
 const { encode } = require('gpt-3-encoder')
-
+const axios = require('axios')
 
 const app = express()
 
@@ -327,10 +327,42 @@ const runFunctionCompletion = async (prompt) => {
   return response
 }
 
+const getWeather = async (parsedFunctionArguments) => {
+  const { location } = parsedFunctionArguments
+  try {
+    const response = await axios({
+      method: 'GET',
+      url: 'http://api.weatherapi.com/v1/current.json',
+      params: { q: location, key: process.env.WEATHER_API_KEY }
+    })
+    const weather = response.data
+    return weather
+  } catch (error) {
+    console.error('There was an error', error)
+  }
+}
+
 app.post('/api/chatgpt-function', async (req, res) => {
 
   try {
     const { text } = req.body
+
+    const calledFunction = completion.data.choices[0].message.function_call
+    if (!calledFunction) {
+      res.json({ data: completion.data })
+      return
+    }
+    const { name: functionName, arguments: functionArguments } = calledFunction
+    const parsedFunctionArguments = JSON.parse(functionArguments)
+    if (functionName === 'get_current_weather') {
+      const weatherObject = await getWeather(parsedFunctionArguments)
+      res.json({
+        request1: { data: completion.data },
+        request2: weatherObject
+      })
+    }
+
+
     const completion = await runFunctionCompletion(text)
     res.json({ data: completion.data })
   } catch (error) {
