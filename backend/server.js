@@ -343,28 +343,30 @@ const getWeather = async (parsedFunctionArguments) => {
 }
 
 app.post('/api/chatgpt-function', async (req, res) => {
-
   try {
     const { text } = req.body
-
-    const calledFunction = completion.data.choices[0].message.function_call
+    const functionCompletion = await runFunctionCompletion(text)
+    const calledFunction = functionCompletion.data.choices[0].message.tool_calls[0].function
+    console.log(calledFunction)
     if (!calledFunction) {
-      res.json({ data: completion.data })
+      res.json({ data: functionCompletion.data })
       return
     }
     const { name: functionName, arguments: functionArguments } = calledFunction
     const parsedFunctionArguments = JSON.parse(functionArguments)
+    console.log(parsedFunctionArguments)
     if (functionName === 'get_current_weather') {
       const weatherObject = await getWeather(parsedFunctionArguments)
+      console.log(weatherObject)
       res.json({
-        request1: { data: completion.data },
+        request1: { data: functionCompletion.data },
         request2: weatherObject
       })
     }
 
 
-    const completion = await runFunctionCompletion(text)
-    res.json({ data: completion.data })
+    
+    res.json({ data: functionCompletion.data })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)

@@ -4,7 +4,7 @@ import Stream from './screens/Stream'
 import "./styles/custom.scss"
 import PDFSummary from './screens/PDFSummary'
 import Chat from './screens/Chat'
-import ChatFunction from './screens/Chat'
+import ChatFunction from './screens/ChatFunction'
 
 const App = () => {
   return (
