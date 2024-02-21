@@ -336,7 +336,10 @@ const getWeather = async (parsedFunctionArguments) => {
       params: { q: location, key: process.env.WEATHER_API_KEY }
     })
     const weather = response.data
-    return weather
+    const { condition, temp_c, temp_f } = weather.current
+    const unit = parsedFunctionArguments.unit !== 'fahrenheit' ? 'celsius' : 'fahrenheit'
+    const temperature = unit === 'celsius' ? temp_c : temp_f
+    return { temperature, unit, description: condition.text }
   } catch (error) {
     console.error('There was an error', error)
   }
