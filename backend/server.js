@@ -345,6 +345,58 @@ const getWeather = async (parsedFunctionArguments) => {
   }
 }
 
+const runFunctionCompletion2 = async (prompt, functionArguments, weatherObject) => {
+  const response = await openai.createChatCompletion({
+    model: 'gpt-3.5-turbo',
+    messages: [
+      { role: 'user', content: prompt },
+      {
+        role: "assistant",
+        content: null,
+        function_call: {
+          name: "get_current_weather",
+          arguments: functionArguments
+        }
+      },
+      {
+        role: 'function',
+        name: 'get_current_weather',
+        content: JSON.stringify(weatherObject)
+      },
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_current_weather",
+          "description": "Get the current weather in a given location",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "The city and state, e.g. San Francisco, CA"
+              },
+              "unit": {
+                "type": "string",
+                "enum": ["celsius", "fahrenheit"]
+              }
+            },
+            "required": ["location"]
+          }
+        }
+      }
+    ],
+    temperature: 1,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    max_tokens: 50,
+  })
+
+  return response
+}
+
 app.post('/api/chatgpt-function', async (req, res) => {
   try {
     const { text } = req.body
@@ -360,16 +412,52 @@ app.post('/api/chatgpt-function', async (req, res) => {
     console.log(parsedFunctionArguments)
     if (functionName === 'get_current_weather') {
       const weatherObject = await getWeather(parsedFunctionArguments)
-      console.log(weatherObject)
-      res.json({
-        request1: { data: functionCompletion.data },
-        request2: weatherObject
+      const response = await runFunctionCompletion2(text, functionArguments, weatherObject)
+
+
+      res.json(response.data)
+      return
+    }
+    
+
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.status, error.response.data)
+      res.status(error.response.status).json(error.response.data)
+    } else {
+      console.error('Error with OpenAI API request', error.message)
+      res.status(500).json({
+        error: {
+          message: 'An Error Occured.'
+        }
       })
     }
+  }
+})
 
+const runChatCompletion = async (prompt) => {
+  const response = await openai.createChatCompletion({
+    model: 'gpt-3.5-turbo',
+    messages: [
+      { role: 'system', content: 'You are a doctor.' },
+      { role: 'user', content: prompt }
+    ],
+    temperature: 1,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    max_tokens: 50,
+  })
 
-    
-    res.json({ data: functionCompletion.data })
+  return response
+}
+
+app.post('/api/chatgpt-chat', async (req, res) => {
+
+  try {
+    const { text } = req.body
+    const completion = await runChatCompletion(text)
+    res.json({ data: completion.data })
   } catch (error) {
     if (error.response) {
       console.error(error.response.status, error.response.data)

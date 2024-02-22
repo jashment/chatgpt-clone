@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import './style/style.css'
+import '../style/style.css'
 
-const Chat = () => {
+const Chatbot = () => {
   const [input, setInput] = useState()
   const [error, setError] = useState()
   const [result, setResult] = useState()
-  const [responseOk, setResponseOk] = useState()
   const [prompt, setPrompt] = useState()
   const [jresult, setJResult] = useState()
 
@@ -20,7 +19,7 @@ const Chat = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/chatgpt-function', {
+      const response = await fetch('http://localhost:5001/api/chatgpt-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,12 +30,11 @@ const Chat = () => {
       })
       console.log(response)
       if (response.ok) {
-        setResponseOk(true)
         const data = await response.json()
         console.log(data)
         setPrompt(input)
-        setResult(data.choices[0].message.content)
-        setJResult(JSON.stringify(data, null, 2))
+        setResult(data.data.choices[0].message.content)
+        setJResult(JSON.stringify(data.data, null, 2))
         setInput('')
         setError('')
       } else {
@@ -44,7 +42,6 @@ const Chat = () => {
       }
     } catch (error) {
       console.log(error)
-      setResponseOk(false)
       setResult('')
       setError('An error occured while submitting the form.')
     }
@@ -75,9 +72,9 @@ const Chat = () => {
       {error && <div className='alert alert-danger mt-3'>{error}</div>}
       {prompt && <div className='alert alert-secondary mt-3'>{prompt}</div>}
       {result && <div className='alert alert-success mt-3'>{result}</div>}
-      {responseOk && (<pre className='alert alert-success mt-3'><code>{jresult}</code></pre>)}
+      {result && (<pre className='alert alert-success mt-3'><code>{jresult}</code></pre>)}
     </div>
   )
 }
 
-export default Chat
+export default Chatbot
