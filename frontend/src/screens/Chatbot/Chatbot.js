@@ -7,6 +7,7 @@ const Chatbot = () => {
   const [result, setResult] = useState()
   const [prompt, setPrompt] = useState()
   const [jresult, setJResult] = useState()
+  const [selectedOption, setSelectedOption] = useState()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -49,8 +50,18 @@ const Chatbot = () => {
 
 
   return (
-    <div className='container'>
-      <form className='form-horizontal' onSubmit={handleSubmit}>
+    <div>
+      <div className='d-flex flex-column chat-page'>
+        <div id='personalities' className='text-center'>
+          <h3>{selectedOption ? 'You are chatting with:' : 'Please Select a Character'}</h3>
+          <div></div>
+        </div>
+        <div id='chatContainer' className='flex-fill overflow-auto'>
+          {error && <div className='alert alert-danger mt-3'>{error}</div>}
+          {prompt && <div className='alert alert-secondary mt-3'>{prompt}</div>}
+          {result && <div className='alert alert-success mt-3'>{result}</div>}
+        </div>
+        <form className='form-horizontal' onSubmit={handleSubmit}>
         <div className='row form-group mt-2'>
           <div className='col-sm-10'>
             <div className='form-floating'>
@@ -69,10 +80,8 @@ const Chatbot = () => {
           </div>
         </div>
       </form>
-      {error && <div className='alert alert-danger mt-3'>{error}</div>}
-      {prompt && <div className='alert alert-secondary mt-3'>{prompt}</div>}
-      {result && <div className='alert alert-success mt-3'>{result}</div>}
-      {result && (<pre className='alert alert-success mt-3'><code>{jresult}</code></pre>)}
+      </div>
+      {jresult && (<pre className='alert alert-success mt-3'><code>{jresult}</code></pre>)}
     </div>
   )
 }

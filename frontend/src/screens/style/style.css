@@ -12,3 +12,7 @@
   background-position: center;
   color: white;
 }
+
+.chat-page {
+  height: 100vh;
+}
