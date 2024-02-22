@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import '../style/style.css'
+import axios from 'axios'
 
 const Chatbot = () => {
   const [input, setInput] = useState()
@@ -8,43 +9,32 @@ const Chatbot = () => {
   const [prompt, setPrompt] = useState()
   const [jresult, setJResult] = useState()
   const [selectedOption, setSelectedOption] = useState()
+  const [messages, setMessages] = useState([
+    { role: 'system', content: 'You are an assistant' }
+  ])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!input) {
-      setError('Please enter a value.')
-      setPrompt('')
-      setResult('')
-      setJResult('')
-      return
-    }
-
-    try {
-      const response = await fetch('http://localhost:5001/api/chatgpt-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          "Access-Control-Allow-Methods": "POST, GET, PUT, DELETE, OPTIONS"
-        },
-        body: JSON.stringify({ text: input })
-      })
-      console.log(response)
-      if (response.ok) {
-        const data = await response.json()
-        console.log(data)
-        setPrompt(input)
-        setResult(data.data.choices[0].message.content)
-        setJResult(JSON.stringify(data.data, null, 2))
-        setInput('')
-        setError('')
-      } else {
-        throw new Error('An error occured.')
+    if (!input.trim() !== '') {
+      try {
+        const updatedMessages = [...messages, { role: 'user', content: input }]
+        setMessages(updatedMessages)
+        const response = await axios({
+          method: 'POST',
+          url: 'http://localhost:5001/api/chatbot',
+          data: {
+            messages: updatedMessages
+          }
+        })
+        const serverResponse = response.data
+        const updatedMessages2 = [...updatedMessages, { role: 'assistant', content: serverResponse.data.choices[0].message.content }]
+        setMessages(updatedMessages2)
+        console.log(updatedMessages2)
+        setJResult(JSON.stringify(updatedMessages2, null, 2))
+      } catch (error) {
+        console.error('An error occurred', error)
+        setError('An error occurred.')
       }
-    } catch (error) {
-      console.log(error)
-      setResult('')
-      setError('An error occured while submitting the form.')
     }
   }
 

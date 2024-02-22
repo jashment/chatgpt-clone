@@ -435,43 +435,35 @@ app.post('/api/chatgpt-function', async (req, res) => {
   }
 })
 
-// const runChatCompletion = async (prompt) => {
-//   const response = await openai.createChatCompletion({
-//     model: 'gpt-3.5-turbo',
-//     messages: [
-//       { role: 'system', content: 'You are a doctor.' },
-//       { role: 'user', content: prompt }
-//     ],
-//     temperature: 1,
-//     top_p: 1,
-//     frequency_penalty: 0,
-//     presence_penalty: 0,
-//     max_tokens: 50,
-//   })
+const runChatbotCompletion = async (messages) => {
+  const response = await openai.createChatCompletion({
+    model: 'gpt-3.5-turbo',
+    messages,
+    temperature: 1,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    max_tokens: 50,
+  })
 
-//   return response
-// }
+  return response
+}
 
-// app.post('/api/chatgpt-chat', async (req, res) => {
+app.post('/api/chatbot', async (req, res) => {
 
-//   try {
-//     const { text } = req.body
-//     const completion = await runChatCompletion(text)
-//     res.json({ data: completion.data })
-//   } catch (error) {
-//     if (error.response) {
-//       console.error(error.response.status, error.response.data)
-//       res.status(error.response.status).json(error.response.data)
-//     } else {
-//       console.error('Error with OpenAI API request', error.message)
-//       res.status(500).json({
-//         error: {
-//           message: 'An Error Occured.'
-//         }
-//       })
-//     }
-//   }
-// })
+  try {
+    const { messages } = req.body
+    const completion = await runChatbotCompletion(messages)
+    res.json({ data: completion.data })
+  } catch (error) {
+    console.error('Error with OpenAI API request', error.message)
+      res.status(500).json({
+        error: {
+          message: 'An Error Occured.'
+        }
+      })
+  }
+})
 
 const PORT = process.env.PORT || 5000
 
