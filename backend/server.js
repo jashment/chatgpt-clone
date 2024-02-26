@@ -24,32 +24,27 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration)
 
-const runCompletion = async (prompt) => {
-  const response = await openai.createCompletion({
-    model: 'gpt-3.5-turbo-instruct',
-    prompt: prompt,
-    temperature: 1,
-    top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-    max_tokens: 50,
-    echo: true
-  })
+const completionConfig = {
+  model: 'gpt-3.5-turbo-instruct',
+  temperature: 1,
+  top_p: 1,
+  frequency_penalty: 0,
+  presence_penalty: 0,
+  max_tokens: 50,
+}
+
+const runCompletion = async (prompt, config) => {
+  config.prompt = prompt
+  config.echo = true
+  const response = await openai.createCompletion(config)
 
   return response
 }
 
-const startCompletionStream = async (prompt) => {
-  const response = await openai.createCompletion({
-    model: 'gpt-3.5-turbo-instruct',
-    prompt: prompt,
-    temperature: 1,
-    top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-    max_tokens: 20,
-    stream: true
-  }, {
+const startCompletionStream = async (prompt, config) => {
+  config.prompt = prompt
+  config.stream = true
+  const response = await openai.createCompletion(config, {
     responseType: 'stream'
   })
 
@@ -68,7 +63,7 @@ app.post('/api/chatgpt-stream', async (req, res) => {
 
   try {
     const { text } = req.body
-    startCompletionStream(text)
+    startCompletionStream(text, completionConfig)
 
     const dataListener = (data) => {
       res.write(data)
@@ -103,7 +98,7 @@ app.post('/api/chatgpt', async (req, res) => {
 
   try {
     const { text } = req.body
-    const completion = await runCompletion(text)
+    const completion = await runCompletion(text, completionConfig)
     res.json({ data: completion.data })
   } catch (error) {
     if (error.response) {
@@ -170,6 +165,8 @@ const summarizeChunk = async (chunk, maxWords) => {
     condition = `Summarize this chunk of text with at most ${maxWords} words.`
   }
   try {
+    completionConfig.prompt = `Summarize this chunk of text: ${condition} \n"""${chunk}"""\n`
+    completionConfig.max_tokens = 2000
     const completion = await openai.createCompletion({
       model: 'gpt-3.5-turbo-instruct',
       prompt: `Summarize this chunk of text: ${condition} \n"""${chunk}"""\n`,
@@ -204,7 +201,6 @@ const upload = multer({ dest: path.join(__dirname, 'pdfsummary') })
 app.post('/api/pdf-summary', upload.single('pdf'), async (req, res) => {
 
   try {
-    // res.json({ data: req.file, body: req.body })
     const { maxWords } = req.body
     const pdfFile = req.file
 
@@ -224,9 +220,6 @@ app.post('/api/pdf-summary', upload.single('pdf'), async (req, res) => {
 
     if (pdfText.length === 0) return res.json({ error: 'Text could not be extracted.' })
 
-    // const chunks = splitTextIntoChunks(pdfText, 2000)
-    // const tokens = chunks.map((chunk) => encode(chunk).length)
-    // res.json({ chunks, tokens })
     let summarizedText = pdfText
     const maxToken = 1000
     while(calculateTokens(summarizedText) > maxToken) {
