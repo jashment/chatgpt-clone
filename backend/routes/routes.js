@@ -6,7 +6,8 @@ const {
   completionStream,
   basicCompletion,
   summarizePdf,
-  functionToolCompletion
+  functionToolCompletion,
+  chatbotCompletion
 } = require('../controllers/controllers')
 
 const router = express.Router()
@@ -21,6 +22,6 @@ router.post('/chatgpt-chat', chatCompletion)
 
 router.post('/chatgpt-function', functionToolCompletion)
 
-// router.post('/chatbot')
+router.post('/chatbot', chatbotCompletion)
 
 module.exports = router

@@ -120,7 +120,6 @@ const functionToolCompletion = async (req, res) => {
     const { text } = req.body
     const functionCompletion = await runFunctionCompletion(text, completionConfig)
     const calledFunction = functionCompletion.data.choices[0].message.tool_calls[0].function
-    console.log(calledFunction)
     if (!calledFunction) {
       res.json({ data: functionCompletion.data })
       return
