@@ -3,6 +3,7 @@ const { Configuration, OpenAIApi } = require('openai')
 const path = require('path')
 const { EventEmitter } = require('events')
 const dotenv = require('dotenv')
+const { encode } = require('gpt-3-encoder')
 
 dotenv.config()
 
@@ -61,6 +62,79 @@ const startCompletionStream = async (prompt, config) => {
   })
 }
 
+const calculateTokens = (text) => {
+  encode(text).length
+}
+
+const splitSentence = (sentence, maxChunkSize) => {
+  const sentenceChunks = []
+  let partialChunk = ''
+  const words = sentence.split(' ')
+
+  words.forEach(word => {
+    if (calculateTokens(partialChunk + word) < maxChunkSize) {
+      partialChunk += word + '.'
+    } else {
+      sentenceChunks.push(partialChunk.trim())
+      partialChunk = word + '.'
+    }
+  })
+
+  if (partialChunk) sentenceChunks.push(partialChunk.trim())
+  return sentenceChunks
+}
+
+const splitTextIntoChunks = (text, maxChunkSize) => {
+  const chunks = []
+  let currentChunk = ''
+  const sentences = text.split('.')
+
+  sentences.forEach(sentence => {
+    if (calculateTokens(currentChunk) > maxChunkSize) {
+      const sentenceChunks = splitSentence(currentChunk, maxChunkSize)
+      chunks.push(...sentenceChunks)
+    }
+    if (calculateTokens(currentChunk + sentence) < maxChunkSize) {
+      currentChunk += sentence + '.'
+    } else {
+      chunks.push(currentChunk.trim())
+      currentChunk = sentence + '.'
+    }
+  })
+
+  if (currentChunk) chunks.push(currentChunk.trim())
+  return chunks
+}
+
+const summarizeChunk = async (chunk, maxWords, config) => {
+  let condition = ''
+  if (maxWords) {
+    condition = `Summarize this chunk of text with at most ${maxWords} words.`
+  }
+  try {
+    completionConfig.prompt = `Summarize this chunk of text: ${condition} \n"""${chunk}"""\n`
+    completionConfig.max_tokens = 2000
+    const completion = await openai.createCompletion(config)
+    return completion.data.choices[0].text
+  } catch (error) {
+    console.log("summarizeChunk error", error)
+    throw new Error(error)
+  }
+}
+
+const summarizeChunks = async (chunks) => {
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+
+  const summarizedChunks = await Promise.all(chunks.map(async (chunk) => {
+    const result = await summarizeChunk(chunk, null, completionConfig)
+    await delay(200)
+    return result
+  }))
+
+  const concatenatedText = summarizedChunks.join(' ')
+  return concatenatedText
+}
+
 module.exports = {
   upload,
   completionEmitter,
@@ -68,5 +142,9 @@ module.exports = {
   openApiError,
   completionConfig,
   runCompletion,
-  startCompletionStream
+  splitTextIntoChunks,
+  startCompletionStream,
+  summarizeChunks,
+  calculateTokens,
+  summarizeChunk
 }
