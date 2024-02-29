@@ -135,6 +135,16 @@ const summarizeChunks = async (chunks) => {
   return concatenatedText
 }
 
+const runChatCompletion = async (prompt, config) => {
+  config.messages = [
+    { role: 'system', content: 'You are a doctor.' },
+    { role: 'user', content: prompt }
+  ]
+  const response = await openai.createChatCompletion(config)
+  console.log(response)
+  return response
+}
+
 module.exports = {
   upload,
   completionEmitter,
@@ -146,5 +156,6 @@ module.exports = {
   startCompletionStream,
   summarizeChunks,
   calculateTokens,
-  summarizeChunk
+  summarizeChunk,
+  runChatCompletion
 }

@@ -33,30 +33,20 @@ const openApiError = (res, error) => {
   })
 }
 
-const runChatCompletion = async (prompt, config) => {
-  config.messages = [
-    { role: 'system', content: 'You are a doctor.' },
-    { role: 'user', content: prompt }
-  ]
-  const response = await openai.createChatCompletion(config)
-
-  return response
-}
-
-app.post('/api/chatgpt-chat', async (req, res) => {
-  try {
-    const { text } = req.body
-    const completion = await runChatCompletion(text, completionConfig)
-    res.json({ data: completion.data })
-  } catch (error) {
-    if (error.response) {
-      console.error(error.response.status, error.response.data)
-      res.status(error.response.status).json(error.response.data)
-    } else {
-      openApiError(res, error)
-    }
-  }
-})
+// app.post('/api/chatgpt-chat', async (req, res) => {
+//   try {
+//     const { text } = req.body
+//     const completion = await runChatCompletion(text, completionConfig)
+//     res.json({ data: completion.data })
+//   } catch (error) {
+//     if (error.response) {
+//       console.error(error.response.status, error.response.data)
+//       res.status(error.response.status).json(error.response.data)
+//     } else {
+//       openApiError(res, error)
+//     }
+//   }
+// })
 
 const runFunctionCompletion = async (prompt, config) => {
   config.messages = [

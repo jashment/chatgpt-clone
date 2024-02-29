@@ -3,6 +3,7 @@ const {
   completionConfig,
   completionEmitter,
   openApiError,
+  runChatCompletion,
   runCompletion,
   splitTextIntoChunks,
   startCompletionStream,
@@ -40,7 +41,7 @@ const completionStream = async (req, res) => {
   }
 }
 
-const chatCompletion = async (req, res) => {
+const basicCompletion = async (req, res) => {
   try {
     const { text } = req.body
     const completion = await runCompletion(text, completionConfig)
@@ -95,7 +96,23 @@ const summarizePdf = async (req, res) => {
   }
 }
 
+const chatCompletion = async (req, res) => {
+  try {
+    const { text } = req.body
+    const completion = await runChatCompletion(text, completionConfig)
+    res.json({ data: completion.data })
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.status, error.response.data)
+      res.status(error.response.status).json(error.response.data)
+    } else {
+      openApiError(res, error)
+    }
+  }
+}
+
 module.exports = {
+  basicCompletion,
   completionStream,
   chatCompletion,
   summarizePdf
