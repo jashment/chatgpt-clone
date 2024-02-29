@@ -4,6 +4,7 @@ const path = require('path')
 const { EventEmitter } = require('events')
 const dotenv = require('dotenv')
 const { encode } = require('gpt-3-encoder')
+const axios = require('axios')
 
 dotenv.config()
 
@@ -52,7 +53,6 @@ const startCompletionStream = async (prompt, config) => {
   })
 
   response.data.on('data', data => {
-    console.log(data.toString().replace(/^data: /, ''))
     const message = data.toString().replace(/^data: /, '')
     if (message !== '') {
       completionEmitter.emit('data', message)
@@ -117,7 +117,7 @@ const summarizeChunk = async (chunk, maxWords, config) => {
     const completion = await openai.createCompletion(config)
     return completion.data.choices[0].text
   } catch (error) {
-    console.log("summarizeChunk error", error)
+    console.error("summarizeChunk error", error)
     throw new Error(error)
   }
 }
@@ -140,8 +140,114 @@ const runChatCompletion = async (prompt, config) => {
     { role: 'system', content: 'You are a doctor.' },
     { role: 'user', content: prompt }
   ]
+  config.model = 'gpt-3.5-turbo'
   const response = await openai.createChatCompletion(config)
-  console.log(response)
+
+  return response
+}
+
+const runFunctionCompletion = async (prompt, config) => {
+  config.model = 'gpt-3.5-turbo'
+  config.messages = [
+      { role: 'user', content: prompt }
+  ]
+  config.tools = [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_current_weather",
+        "description": "Get the current weather in a given location",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string",
+              "description": "The city and state, e.g. San Francisco, CA"
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["celsius", "fahrenheit"]
+            }
+          },
+          "required": ["location"]
+        }
+      }
+    }
+  ]
+  const response = await openai.createChatCompletion(config)
+
+  return response
+}
+
+const getWeather = async (parsedFunctionArguments) => {
+  const { location } = parsedFunctionArguments
+  try {
+    const response = await axios({
+      method: 'GET',
+      url: 'http://api.weatherapi.com/v1/current.json',
+      params: { q: location, key: process.env.WEATHER_API_KEY }
+    })
+    const weather = response.data
+    const { condition, temp_c, temp_f } = weather.current
+    const unit = parsedFunctionArguments.unit !== 'fahrenheit' ? 'celsius' : 'fahrenheit'
+    const temperature = unit === 'celsius' ? temp_c : temp_f
+    return { temperature, unit, description: condition.text }
+  } catch (error) {
+    console.error('There was an error', error)
+  }
+}
+
+const runFunctionCompletion2 = async (prompt, functionArguments, weatherObject, config) => {
+  config.model = 'gpt-3.5-turbo'
+  config.messages = [
+    { role: 'user', content: prompt },
+    {
+      role: "assistant",
+      content: null,
+      function_call: {
+        name: "get_current_weather",
+        arguments: functionArguments
+      }
+    },
+    {
+      role: 'function',
+      name: 'get_current_weather',
+      content: JSON.stringify(weatherObject)
+    },
+  ]
+  config.tools = [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_current_weather",
+        "description": "Get the current weather in a given location",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string",
+              "description": "The city and state, e.g. San Francisco, CA"
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["celsius", "fahrenheit"]
+            }
+          },
+          "required": ["location"]
+        }
+      }
+    }
+  ]
+  const response = await openai.createChatCompletion(config)
+
+  return response
+}
+
+const runChatbotCompletion = async (messages, config) => {
+  config.messages = messages
+  config.model = 'gpt-3.5-turbo'
+  const response = await openai.createChatCompletion(config)
+
   return response
 }
 
@@ -149,6 +255,7 @@ module.exports = {
   upload,
   completionEmitter,
   configuration,
+  getWeather,
   openApiError,
   completionConfig,
   runCompletion,
@@ -157,5 +264,8 @@ module.exports = {
   summarizeChunks,
   calculateTokens,
   summarizeChunk,
-  runChatCompletion
+  runChatbotCompletion,
+  runChatCompletion,
+  runFunctionCompletion,
+  runFunctionCompletion2
 }

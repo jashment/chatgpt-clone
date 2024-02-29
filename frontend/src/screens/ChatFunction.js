@@ -29,11 +29,10 @@ const Chat = () => {
         },
         body: JSON.stringify({ text: input })
       })
-      console.log(response)
+
       if (response.ok) {
         setResponseOk(true)
         const data = await response.json()
-        console.log(data)
         setPrompt(input)
         setResult(data.choices[0].message.content)
         setJResult(JSON.stringify(data, null, 2))

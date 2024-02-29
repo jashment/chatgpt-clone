@@ -5,7 +5,8 @@ const {
   chatCompletion,
   completionStream,
   basicCompletion,
-  summarizePdf
+  summarizePdf,
+  functionToolCompletion
 } = require('../controllers/controllers')
 
 const router = express.Router()
@@ -18,7 +19,7 @@ router.post('/pdf-summary', upload.single('pdf'), summarizePdf)
 
 router.post('/chatgpt-chat', chatCompletion)
 
-// router.post('/chatgpt-function')
+router.post('/chatgpt-function', functionToolCompletion)
 
 // router.post('/chatbot')
 

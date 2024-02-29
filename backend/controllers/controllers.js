@@ -8,7 +8,11 @@ const {
   splitTextIntoChunks,
   startCompletionStream,
   summarizeChunk,
-  summarizeChunks
+  summarizeChunks,
+  runChatbotCompletion,
+  runFunctionCompletion,
+  runFunctionCompletion2,
+  getWeather
 } = require('../utils')
 const { PDFExtract } = require('pdf.js-extract')
 
@@ -111,9 +115,52 @@ const chatCompletion = async (req, res) => {
   }
 }
 
+const functionToolCompletion = async (req, res) => {
+  try {
+    const { text } = req.body
+    const functionCompletion = await runFunctionCompletion(text, completionConfig)
+    const calledFunction = functionCompletion.data.choices[0].message.tool_calls[0].function
+    console.log(calledFunction)
+    if (!calledFunction) {
+      res.json({ data: functionCompletion.data })
+      return
+    }
+    const { name: functionName, arguments: functionArguments } = calledFunction
+    const parsedFunctionArguments = JSON.parse(functionArguments)
+
+    if (functionName === 'get_current_weather') {
+      const weatherObject = await getWeather(parsedFunctionArguments)
+      const response = await runFunctionCompletion2(text, functionArguments, weatherObject, completionConfig)
+
+      res.json(response.data)
+      return
+    }
+    
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.status, error.response.data)
+      res.status(error.response.status).json(error.response.data)
+    } else {
+      openApiError(res, error)
+    }
+  }
+}
+
+const chatbotCompletion = async (req, res) => {
+  try {
+    const { messages } = req.body
+    const completion = await runChatbotCompletion(messages, completionConfig)
+    res.json({ data: completion.data })
+  } catch (error) {
+    openApiError(res, error)
+  }
+}
+
 module.exports = {
   basicCompletion,
+  chatbotCompletion,
   completionStream,
   chatCompletion,
+  functionToolCompletion,
   summarizePdf
 }
