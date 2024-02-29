@@ -8,6 +8,7 @@ const path = require('path')
 const { PDFExtract } = require('pdf.js-extract')
 const { encode } = require('gpt-3-encoder')
 const axios = require('axios')
+const openAiApiRouter = require('./routes/routes')
 
 const app = express()
 
@@ -15,7 +16,6 @@ app.use(express.json())
 
 dotenv.config()
 app.use(cors())
-const completionEmitter = new EventEmitter()
 
 const configuration = new Configuration({
   organization: 'org-hlVylsQNv3gdpXxHbosquRRW',
@@ -32,71 +32,6 @@ const openApiError = (res, error) => {
     }
   })
 }
-
-const completionConfig = {
-  model: 'gpt-3.5-turbo-instruct',
-  temperature: 1,
-  top_p: 1,
-  frequency_penalty: 0,
-  presence_penalty: 0,
-  max_tokens: 50,
-}
-
-const runCompletion = async (prompt, config) => {
-  config.prompt = prompt
-  config.echo = true
-  const response = await openai.createCompletion(config)
-
-  return response
-}
-
-const startCompletionStream = async (prompt, config) => {
-  config.prompt = prompt
-  config.stream = true
-  const response = await openai.createCompletion(config, {
-    responseType: 'stream'
-  })
-
-  response.data.on('data', data => {
-    console.log(data.toString().replace(/^data: /, ''))
-    const message = data.toString().replace(/^data: /, '')
-    if (message !== '') {
-      completionEmitter.emit('data', message)
-    } else {
-      completionEmitter.emit('Done')
-    }
-  })
-}
-
-app.post('/api/chatgpt-stream', async (req, res) => {
-
-  try {
-    const { text } = req.body
-    startCompletionStream(text, completionConfig)
-
-    const dataListener = (data) => {
-      res.write(data)
-    }
-
-    const doneListener = () => {
-      res.write('{"event": "done"}')
-      res.end()
-      completionEmitter.off('data', dataListener)
-      completionEmitter.off('Done', doneListener)
-    }
-
-    completionEmitter.on('data', dataListener)
-    completionEmitter.on('Done', doneListener)
-
-  } catch (error) {
-    if (error.response) {
-      console.error(error.response.status, error.response.data)
-      res.status(error.response.status).json(error.response.data)
-    } else {
-      openApiError(res, error)
-    }
-  }
-})
 
 app.post('/api/chatgpt', async (req, res) => {
 
@@ -398,6 +333,8 @@ app.post('/api/chatbot', async (req, res) => {
     openApiError(res, error)
   }
 })
+
+app.use('/api', openAiApiRouter)
 
 const PORT = process.env.PORT || 5000
 
