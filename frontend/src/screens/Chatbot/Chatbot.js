@@ -5,8 +5,6 @@ import axios from 'axios'
 const Chatbot = () => {
   const [input, setInput] = useState()
   const [error, setError] = useState()
-  const [result, setResult] = useState()
-  const [prompt, setPrompt] = useState()
   const [jresult, setJResult] = useState()
   const [selectedOption, setSelectedOption] = useState()
   const [messages, setMessages] = useState([
