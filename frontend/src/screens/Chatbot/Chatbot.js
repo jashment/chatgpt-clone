@@ -128,7 +128,7 @@ const Chatbot = () => {
           })}
           {error && <div className='alert alert-danger mt-3'>{error}</div>}
           {prompt && <div className='alert alert-secondary mt-3'>{prompt}</div>}
-          {result && <div className='alert alert-success mt-3'>{result}</div>}
+          {/* {result && <div className='alert alert-success mt-3'>{result}</div>} */}
         </div>
         <form className='form-horizontal mb-3 container-fluid' onSubmit={handleSubmit}>
         <div className='row form-group mt-2'>
