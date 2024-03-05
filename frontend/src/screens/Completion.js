@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './style/style.css'
 
-const Home = () => {
+const Completion = () => {
   const [input, setInput] = useState()
   const [error, setError] = useState()
   const [result, setResult] = useState()
@@ -77,4 +77,4 @@ const Home = () => {
   )
 }
 
-export default Home
+export default Completion
