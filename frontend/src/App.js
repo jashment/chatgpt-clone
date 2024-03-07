@@ -10,10 +10,11 @@ import Nav from './screens/Nav'
 
 const App = () => {
   return (
-    <>
+    <div className='App'>
       <Router>
+        <Nav />
         <Routes>
-          <Route path='/' element={<Nav />} />
+          {/* <Route path='/' element={<Nav />} /> */}
           <Route path='/completion' element={<Completion />} />
           <Route path='/stream' element={<Stream />} />
           <Route path='/pdf-summary' element={<PDFSummary />} />
@@ -22,7 +23,7 @@ const App = () => {
           <Route path='/chatbot' element={<Chatbot />} />
         </Routes>
       </Router>
-    </>
+    </div>
   )
 }
 
