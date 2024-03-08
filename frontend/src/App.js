@@ -14,7 +14,6 @@ const App = () => {
       <Router>
         <Nav />
         <Routes>
-          {/* <Route path='/' element={<Nav />} /> */}
           <Route path='/completion' element={<Completion />} />
           <Route path='/stream' element={<Stream />} />
           <Route path='/pdf-summary' element={<PDFSummary />} />
