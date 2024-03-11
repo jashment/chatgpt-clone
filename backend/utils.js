@@ -122,9 +122,9 @@ const summarizeChunk = async (chunk, maxWords, config) => {
   }
 }
 
-const summarizeChunks = async (chunks) => {
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
+const summarizeChunks = async (chunks) => {
   const summarizedChunks = await Promise.all(chunks.map(async (chunk) => {
     const result = await summarizeChunk(chunk, null, completionConfig)
     await delay(200)
@@ -251,21 +251,32 @@ const runChatbotCompletion = async (messages, config) => {
   return response
 }
 
+const getEmbedding = async (text, model = 'text-embedding-ada-002') => {
+  await delay(2000)
+  return [0.5, 0.5, 0.5]
+}
+
+const cosineSimilarity = (vector1, vector2) => {
+  return 1
+}
+
 module.exports = {
-  upload,
+  calculateTokens,
+  completionConfig,
   completionEmitter,
   configuration,
+  cosineSimilarity,
+  getEmbedding,
   getWeather,
   openApiError,
-  completionConfig,
-  runCompletion,
-  splitTextIntoChunks,
-  startCompletionStream,
-  summarizeChunks,
-  calculateTokens,
-  summarizeChunk,
   runChatbotCompletion,
   runChatCompletion,
+  runCompletion,
   runFunctionCompletion,
-  runFunctionCompletion2
+  runFunctionCompletion2,
+  splitTextIntoChunks,
+  startCompletionStream,
+  summarizeChunk,
+  summarizeChunks,
+  upload,
 }

@@ -2,17 +2,19 @@ const {
   calculateTokens,
   completionConfig,
   completionEmitter,
+  cosineSimilarity,
+  getEmbedding,
+  getWeather,
   openApiError,
+  runChatbotCompletion,
   runChatCompletion,
   runCompletion,
+  runFunctionCompletion,
+  runFunctionCompletion2,
   splitTextIntoChunks,
   startCompletionStream,
   summarizeChunk,
   summarizeChunks,
-  runChatbotCompletion,
-  runFunctionCompletion,
-  runFunctionCompletion2,
-  getWeather
 } = require('../utils')
 const { PDFExtract } = require('pdf.js-extract')
 
@@ -155,11 +157,31 @@ const chatbotCompletion = async (req, res) => {
   }
 }
 
+const similarityCompletion = async (req, res) => {
+  try {
+    const { text, text2 } = req.body
+
+    const embedding1 = await getEmbedding(text)
+    const embedding2 = await getEmbedding(text2)
+    const similarity = cosineSimilarity(embedding1, embedding2)
+
+    res.json({ embedding1, embedding1, similarity })
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.status, error.response.data)
+      res.status(error.response.status).json(error.response.data)
+    } else {
+      openApiError(res, error)
+    }
+  }
+}
+
 module.exports = {
   basicCompletion,
   chatbotCompletion,
   completionStream,
   chatCompletion,
   functionToolCompletion,
+  similarityCompletion,
   summarizePdf
 }

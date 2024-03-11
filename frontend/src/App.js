@@ -7,6 +7,7 @@ import Chat from './screens/Chat'
 import ChatFunction from './screens/ChatFunction'
 import Chatbot from './screens/Chatbot/Chatbot'
 import Nav from './screens/Nav'
+import Similarity from './screens/Similarity'
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
           <Route path='/chat' element={<Chat />} />
           <Route path='/chat-function' element={<ChatFunction />} />
           <Route path='/chatbot' element={<Chatbot />} />
+          <Route path='/similarity' element={<Similarity />} />
         </Routes>
       </Router>
     </div>

@@ -1,13 +1,13 @@
 const express = require('express')
 const { upload } = require('../utils')
-const { EventEmitter } = require('events')
 const {
+  basicCompletion,
+  chatbotCompletion,
   chatCompletion,
   completionStream,
-  basicCompletion,
-  summarizePdf,
   functionToolCompletion,
-  chatbotCompletion
+  similarityCompletion,
+  summarizePdf,
 } = require('../controllers/controllers')
 
 const router = express.Router()
@@ -23,5 +23,7 @@ router.post('/chatgpt-chat', chatCompletion)
 router.post('/chatgpt-function', functionToolCompletion)
 
 router.post('/chatbot', chatbotCompletion)
+
+router.post('/similarity', similarityCompletion)
 
 module.exports = router

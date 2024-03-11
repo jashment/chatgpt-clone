@@ -24,6 +24,7 @@ const Nav = () => {
       <NavLink to='/pdf-summary'>PDF Summary</NavLink>
       <NavLink to='/chat-function'>Chat Function</NavLink>
       <NavLink to='/chatbot'>Chatbot</NavLink>
+      <NavLink to='/similarity'>Similarity</NavLink>
     </div>
   );
 };
